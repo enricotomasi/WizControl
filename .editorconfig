@@ -1,0 +1,7 @@
+﻿[*.cs]
+
+# CS1998: Il metodo asincrono non contiene operatori 'await', pertanto verrà eseguito in modo sincrono
+dotnet_diagnostic.CS1998.severity = silent
+
+# CS0414: Il campo 'wizControl.regKey' è assegnato, ma il suo valore non viene mai usato
+dotnet_diagnostic.CS0414.severity = silent
