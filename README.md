@@ -22,4 +22,6 @@ If you use it with other models I would appreciate if you let me know if it work
 
 
 
+
+This software use OpenWiz library, thanx to https://github.com/UselessMnemonic/OpenWiz
 (The Software and code available in this project are provided "as is" without warranty of any kind, either express or implied. Use at your own risk)
