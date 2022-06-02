@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using System.Net;
 using System.Windows.Forms;
 using Microsoft.Win32;
+using System.Reflection;
 
 namespace WizControl
 {
@@ -16,6 +17,8 @@ namespace WizControl
     {
         private string regKey = @"SOFTWARE\WizControl";
         private string regLamp = @"SOFTWARE\WizControl\lamps";
+        private string regConfig = @"SOFTWARE\WizControl\config";
+        private string projectWebSite = "https://github.com/enricotomasi/WizControl";
         private static bool RGBMode = false;
         private static bool controlsActive = false;
         ToolTip toolTipWiFi = new ToolTip();
@@ -23,7 +26,6 @@ namespace WizControl
         private wizLight lamp;
         private Dictionary<string, IPAddress> lights = new Dictionary<string, IPAddress>();
         private ContextMenu notifyIconContextMenu = new ContextMenu();
-
 
         public wizControl()
         {
@@ -50,14 +52,16 @@ namespace WizControl
 
         private void inizializeNotifyIcon()
         {
+            string v = System.Windows.Forms.Application.ProductVersion;
             notifyIconContextMenu.MenuItems.Add("Show &window", this.notifyShowWindows_Click);
+            notifyIconContextMenu.MenuItems.Add("&About", this.notifyAbout_Click);
             notifyIconContextMenu.MenuItems.Add("E&xit", this.notifyClose_Click);
 
             notifyIcon1.ContextMenu = notifyIconContextMenu;
-            notifyIcon1.Text = "WizControl";
-            notifyIcon1.BalloonTipTitle = "WizControl";
+            notifyIcon1.Text = "WizControl " + v;
+            notifyIcon1.BalloonTipTitle = "WizControl " + v;
             notifyIcon1.BalloonTipText = "Click to open application";
-            notifyIcon1.Visible = false;
+            notifyIcon1.Visible = true;
         }
 
         private void notifyShowWindows_Click(object sender, EventArgs e)
@@ -72,7 +76,6 @@ namespace WizControl
 
         private void notifyClose_Click(object sender, EventArgs e)
         {
-            notifyIcon1.Visible = false;
             Application.Exit();
         }
 
@@ -81,15 +84,20 @@ namespace WizControl
             notifyIconShowWindow();
         }
 
+        private void notifyAbout_Click(object sender, EventArgs e)
+        {
+            System.Diagnostics.Process.Start(projectWebSite);
+        }
+
         private void notifyIconShowWindow()
         {
             this.Show();
-            notifyIcon1.Visible = false;
+            notifyIcon1.Visible = true;
         }
 
         private void showNotifyIconHideWindow()
         {
-            notifyIcon1.Visible = true;
+            //notifyIcon1.Visible = true;
             this.Hide();
         }
 
@@ -111,31 +119,52 @@ namespace WizControl
         {
             string loadingString = "Finding lights...";
 
-            if (lightSelector.Items.Count == 1 && lightSelector.Items[0].ToString() == loadingString)
+            if (findLights.isRunning)
             {
                 errorMessage("Antoher scanning process is already running...");
                 return;
             }
 
+            int selIndex = lightSelector.SelectedIndex;
+            var config = new configuration(regConfig);
+            lights = config.load();
+            
             lightSelector.DataSource = null;
             lightSelector.Items.Clear();
-            lightSelector.Items.Add(loadingString);
-            lightSelector.SelectedIndex = 0;
+
+            if (lights.Count > 0)
+            {
+                populateComboLights();
+            }
+            else
+            {
+                lightSelector.Items.Add(loadingString);
+            }    
+            
+            if (selIndex != -1 && lightSelector.Items.Count > selIndex) lightSelector.SelectedIndex = selIndex;
+            else if (lightSelector.Items.Count > 0 ) lightSelector.SelectedIndex = 0;
+            else lightSelector.SelectedIndex = -1;
 
             lights.Clear();
-
+            
             await Task.Factory.StartNew(() =>
             {
+                findLights.isRunning = true;
+                this.Invoke((MethodInvoker)(() => refresh.Enabled = false));
                 lights = findLights.findAllSubnet();
             })
             .ContinueWith(result =>
             {
+                findLights.isRunning = false;
+                this.Invoke((MethodInvoker)(() => refresh.Enabled = true));
                 this.Invoke((MethodInvoker)(() => populateComboLights()));
+                config.save(lights);
             });
         }
 
         private void populateComboLights()
         {
+            int selIndex = lightSelector.SelectedIndex;
             lightSelector.DataSource = null;
             lightSelector.Items.Clear();
 
@@ -166,7 +195,8 @@ namespace WizControl
 
             if (lightSelector.Items.Count > 0)
             {
-                lightSelector.SelectedIndex = 0;
+                if (selIndex != -1 && lightSelector.Items.Count > selIndex) lightSelector.SelectedIndex = selIndex;
+                else lightSelector.SelectedIndex = 0;
             }
             else
             {
@@ -357,7 +387,6 @@ namespace WizControl
             writeValuesToLamp();
         }
 
-
         private void updateTemperatureControl()
         {
             int dimUserInput = 0;
@@ -412,7 +441,6 @@ namespace WizControl
             this.Refresh();
         }
 
-
         private void enableRGB_CheckedChanged(object sender, EventArgs e)
         {
             if (enableRGB.Checked) enaRGB(true);
@@ -455,7 +483,6 @@ namespace WizControl
             }
         }
 
-      
         private void R_Scroll(object sender, EventArgs e)
         {
             RText.Text = R.Value.ToString();
@@ -573,7 +600,6 @@ namespace WizControl
             }
         }
 
-
         private void ren_Click(object sender, EventArgs e)
         {
             try
@@ -625,7 +651,6 @@ namespace WizControl
             changePowerButtonColor();
         }
 
-
         private void errorMessage(string msg)
         {
             MessageBox.Show(msg, "WizControl", MessageBoxButtons.OK);
@@ -636,6 +661,5 @@ namespace WizControl
             updateLightsValues();
         }
 
-        
     }
 }

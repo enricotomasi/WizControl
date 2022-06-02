@@ -12,6 +12,8 @@ namespace WizControl
 {
     internal class findLights
     {
+        public static bool isRunning { get; set; }
+        
         private static Dictionary<string, IPAddress> result = new Dictionary<string, IPAddress>();
         private static IPAddress pcAddress;
         private static IPAddress startIP;
@@ -55,7 +57,7 @@ namespace WizControl
             }
             catch (Exception)
             {
-                
+                throw new Exception("Unable to find newtork card!");
             }
         }
 
