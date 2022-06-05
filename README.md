@@ -1,4 +1,9 @@
+
+
 # WizControl
+
+![image](https://user-images.githubusercontent.com/62146815/172050577-ace5e51b-68e0-4549-bb15-3472db9b1f0a.png)
+
 Unofficial Wiz Light client for Windows
 
 Installation is simple: download the msi file and run it, follow the instructions and you will find the shortcut to the program on your desktop and in the programs menu.
@@ -18,10 +23,12 @@ I have tested the app with the following bulbs:
 - A60 Filament
 
 If you use it with other models I would appreciate if you let me know if it works fine.
-
-
-
-
-
+\
+\
+\
+\
+Thanx to UselessMnemonic for OpenWiz library: https://github.com/UselessMnemonic/OpenWiz
+\
+\
 This software use OpenWiz library, thanx to https://github.com/UselessMnemonic/OpenWiz
 (The Software and code available in this project are provided "as is" without warranty of any kind, either express or implied. Use at your own risk)
